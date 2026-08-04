@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Riscos de Queimadas</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/imagem/green flames.png">
+  <link rel="shortcut icon" type="image/png" href="assets/imagem/green flames.png">
+  <link rel="apple-touch-icon" href="assets/imagem/green flames.png">
+  
+  <link rel="stylesheet" href="css/geral.css" />
+  <link rel="stylesheet" href="css/riscos.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+  <header class="topbar" role="banner">
+    <div class="container">
+      <div class="brand-left">
+        <a href="index.html" class="brand-link">
+          <div class="logo-circle">
+            <img src="assets/imagem/green flames.png" alt="Green Flames Logo">
+          </div>
+          <div class="brand-text">
+            <div class="site-title">GREEN FLAMES</div>
+            <div class="site-subtitle">PARAÍSO DO TOCANTINS</div>
+          </div>
+        </a>
+      </div>
+
+
+
+
+
+      <nav class="topnav" aria-label="Menu principal">
+        <input type="checkbox" id="check">
+        <label for="check" class="checkbtn">
+          <i class="fas fa-bars">☰</i>
+        </label>
+        <div class="nav-desktop">
+          <a href="index.html">INÍCIO</a>
+          <a href="servicos.html" class="active">RISCOS DE QUEIMADAS</a>
+          <a href="noticia.html">PREVENÇÃO</a>
+          <a href="contato.html">AJUDA</a>
+          <a href="denuncia.html">DENÚNCIA</a>
+          <a href="entrar.html" class="btn-entrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-dasharray="28" stroke-dashoffset="28" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M4 21v-1c0 -3.31 2.69 -6 6 -6h4c3.31 0 6 2.69 6 6v1"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.4s" values="28;0"/></path><path d="M12 11c-2.21 0 -4 -1.79 -4 -4c0 -2.21 1.79 -4 4 -4c2.21 0 4 1.79 4 4c0 2.21 -1.79 4 -4 4Z"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.4s" dur="0.4s" values="28;0"/></path></g></svg>ENTRAR</a>
+        </div>
+        <div class="nav-mobile">
+          <a href="index.html">INÍCIO</a>
+          <a href="servicos.html" class="active">RISCOS DE QUEIMADAS</a>
+          <a href="noticia.html">PREVENÇÃO</a>
+          <a href="contato.html">AJUDA</a>
+          <a href="denuncia.html">DENÚNCIA</a>
+          <a href="entrar.html">ENTRAR</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+
+  <main>
+    <h2>RISCOS DE QUEIMADAS</h2>
+    <p class="subtitulo">
+      Confira abaixo as regiões com maior probabilidade de queimadas no mês atual.
+    </p>
+
+
+    <div class="mapa-container">
+      <div class="mapa-interativo" id="mapaRiscos"></div>
+      <div class="legenda-riscos">
+        <h3>Legenda de Riscos</h3>
+        <div class="legenda-item">
+          <span class="legenda-cor risco-alto"></span>
+          <span>Alto Risco (70%+)</span>
+        </div>
+        <div class="legenda-item">
+          <span class="legenda-cor risco-medio"></span>
+          <span>Médio Risco (60-69%)</span>
+        </div>
+        <div class="legenda-item">
+          <span class="legenda-cor risco-baixo"></span>
+          <span>Baixo Risco (50-59%)</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+
+  <footer class="footer footer-compact">
+    <div class="footer-container" style="grid-template-columns: 1fr; justify-items: center;">
+      <div class="footer-section" style="text-align: center;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; align-items: center;">
+          <div class="footer-contact-item" style="justify-content: center; margin: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <p>Paraíso do Tocantins - TO</p>
+          </div>
+          <div class="footer-contact-item" style="justify-content: center; margin: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+            <p>Emergência: 193</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2025 5º Corpo de Bombeiros Militar — Tocantins. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Inicialização do Mapa Interativo
+    (function initMapaRiscos(){
+      // Coordenadas de Paraíso do Tocantins (centro)
+      const paraisoLat = -10.1750;
+      const paraisoLng = -48.8828;
+      
+      // Locais de risco com coordenadas aproximadas
+      const locaisRisco = [
+        {
+          nome: 'Serra do Estrondo',
+          risco: 70,
+          lat: -10.2400,
+          lng: -48.9200,
+          tipo: 'alto'
+        },
+        {
+          nome: 'Estrada para Santaninha',
+          risco: 60,
+          lat: -10.1500,
+          lng: -48.8500,
+          tipo: 'medio'
+        },
+        {
+          nome: 'Fazendas da Região',
+          risco: 55,
+          lat: -10.2000,
+          lng: -48.9100,
+          tipo: 'baixo'
+        }
+      ];
+      
+      // Criar mapa
+      const mapa = L.map('mapaRiscos').setView([paraisoLat, paraisoLng], 12);
+      
+      // Adicionar camada do mapa (OpenStreetMap)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18
+      }).addTo(mapa);
+      
+      // Função para obter cor baseada no risco
+      function getCorRisco(risco) {
+        if (risco >= 70) return '#dc2626'; // Vermelho - Alto risco
+        if (risco >= 60) return '#f59e0b'; // Laranja - Médio risco
+        return '#fbbf24'; // Amarelo - Baixo risco
+      }
+      
+      // Função para obter ícone customizado
+      function criarIconeRisco(risco) {
+        const cor = getCorRisco(risco);
+        return L.divIcon({
+          className: 'marcador-risco',
+          html: `
+            <div style="
+              background-color: ${cor};
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              border: 3px solid white;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              color: white;
+              font-size: 14px;
+            ">${risco}%</div>
+          `,
+          iconSize: [40, 40],
+          iconAnchor: [20, 20]
+        });
+      }
+      
+      // Adicionar marcadores para cada local de risco
+      locaisRisco.forEach(local => {
+        const marcador = L.marker([local.lat, local.lng], {
+          icon: criarIconeRisco(local.risco)
+        }).addTo(mapa);
+        
+        marcador.bindPopup(`
+          <div style="text-align: center; padding: 8px;">
+            <h3 style="margin: 0 0 8px; color: #07221a; font-size: 16px; font-weight: 700;">${local.nome}</h3>
+            <p style="margin: 4px 0; font-size: 14px;">
+              <strong style="color: ${getCorRisco(local.risco)};">Risco: ${local.risco}%</strong>
+            </p>
+            <p style="margin: 4px 0; font-size: 12px; color: #6b7280;">
+              Área com probabilidade alta de queimadas
+            </p>
+          </div>
+        `);
+      });
+      
+      // Adicionar marcador central em Paraíso do Tocantins
+      L.marker([paraisoLat, paraisoLng], {
+        icon: L.divIcon({
+          className: 'marcador-centro',
+          html: `
+            <div style="
+              background-color: #0f7a4a;
+              width: 30px;
+              height: 30px;
+              border-radius: 50%;
+              border: 3px solid white;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            "></div>
+          `,
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
+        })
+      }).addTo(mapa).bindPopup(`
+        <div style="text-align: center; padding: 8px;">
+          <h3 style="margin: 0 0 4px; color: #07221a; font-size: 16px; font-weight: 700;">Paraíso do Tocantins</h3>
+          <p style="margin: 0; font-size: 12px; color: #6b7280;">Centro de Referência</p>
+        </div>
+      `);
+      
+    })();
+    
+    // Menu mobile com checkbox - sem JavaScript necessário
+    (function initMobileMenu(){
+      console.log('[Menu Mobile] Inicializando...');
+      const toggle = document.getElementById('mobileMenuToggle');
+      const nav = document.querySelector('.topnav');
+      const overlay = document.createElement('div');
+      overlay.className = 'mobile-overlay';
+      document.body.appendChild(overlay);
+
+      if(!toggle || !nav) {
+        console.error('[Menu Mobile] Toggle ou nav não encontrado!', {toggle, nav});
+        return;
+      }
+      
+      console.log('[Menu Mobile] Elementos encontrados:', {toggle, nav, overlay});
+
+      let linkClickHandlers = [];
+      
+      function openMenu(){
+        console.log('[Menu Mobile] Abrindo menu...');
+        nav.classList.add('mobile-open');
+        toggle.classList.add('active');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Adicionar listeners nos links para fechar menu e navegar
+        const links = nav.querySelectorAll('a');
+        console.log('[Menu Mobile] Links encontrados:', links.length, links);
+        
+        links.forEach(function(link, index) {
+          const href = link.getAttribute('href');
+          console.log('[Menu Mobile] Link ' + index + ':', href, link);
+          
+          const handler = function(e) {
+            console.log('[Menu Mobile] Link clicado!', href, e);
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            const hrefValue = link.getAttribute('href');
+            console.log('[Menu Mobile] Href do link:', hrefValue);
+            
+            if(hrefValue) {
+              console.log('[Menu Mobile] Fechando menu...');
+              
+              // Navegar imediatamente
+              console.log('[Menu Mobile] Navegando para:', hrefValue);
+              window.location.href = hrefValue;
+              
+              // Fechar menu após navegação (opcional)
+              setTimeout(closeMenu, 50);
+            } else {
+              console.warn('[Menu Mobile] Link sem href!', link);
+            }
+            
+            return false;
+          };
+          
+          linkClickHandlers.push({link: link, handler: handler});
+          link.addEventListener('click', handler, false);
+          console.log('[Menu Mobile] Listener adicionado ao link:', href);
+        });
+        
+        console.log('[Menu Mobile] Total de handlers:', linkClickHandlers.length);
+      }
+
+      function closeMenu(){
+        console.log('[Menu Mobile] Fechando menu...');
+        nav.classList.remove('mobile-open');
+        toggle.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        
+        // Remover listeners dos links
+        console.log('[Menu Mobile] Removendo', linkClickHandlers.length, 'handlers');
+        linkClickHandlers.forEach(function(item, index) {
+          console.log('[Menu Mobile] Removendo handler', index, 'do link:', item.link.getAttribute('href'));
+          item.link.removeEventListener('click', item.handler, false);
+        });
+        linkClickHandlers = [];
+        console.log('[Menu Mobile] Menu fechado');
+      }
+
+      toggle.addEventListener('click', function(e){
+        console.log('[Menu Mobile] Toggle clicado');
+        e.stopPropagation();
+        if(nav.classList.contains('mobile-open')){
+          console.log('[Menu Mobile] Menu aberto, fechando...');
+          closeMenu();
+        } else {
+          console.log('[Menu Mobile] Menu fechado, abrindo...');
+          openMenu();
+        }
+      });
+
+      overlay.addEventListener('click', function(e) {
+        console.log('[Menu Mobile] Overlay clicado', e.target, e.target === overlay, nav.contains(e.target));
+        // Só fechar se clicou diretamente no overlay, não em elementos do menu
+        if(e.target === overlay && !nav.contains(e.target)){
+          console.log('[Menu Mobile] Clicou diretamente no overlay, fechando...');
+          closeMenu();
+        } else {
+          console.log('[Menu Mobile] Clique no overlay ignorado - clique foi no menu');
+        }
+      });
+
+      window.addEventListener('resize', function(){
+        if(window.innerWidth > 880){
+          closeMenu();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
+
+
