@@ -647,9 +647,8 @@
     if (sessionError || !currentSession?.user) {
       localStorage.setItem("paginaRedirecionamento", window.location.href);
       alert("Você precisa fazer login para acessar a página de denúncias.");
-      window.location.href = "entrar.html";
-      throw new Error("Sessão Supabase não encontrada.");
-    }
+      window.location.replace("entrar.html");
+    } else {
     const currentUser = currentSession.user;
     const { data: profileData } = await supabase
       .from("tb_usuario").select("nome,email").eq("id_usuario", currentUser.id).maybeSingle();
@@ -1363,7 +1362,8 @@
         }
       });
     })();
-    </script>
+      }
+  </script>
 </body>
 </html>
 
