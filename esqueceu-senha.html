@@ -27,7 +27,13 @@
       <label for="email">E-mail</label>
       <input id="email" type="email" name="email" placeholder="Digite seu e-mail cadastrado" required autofocus>
 
-      <input type="submit" value="Enviar Instruções" class="btn">
+      <div id="recoveryFields" style="display:none">
+        <label for="newPassword">Nova senha</label>
+        <input id="newPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Digite sua nova senha">
+        <label for="confirmPassword">Confirme a nova senha</label>
+        <input id="confirmPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Repita a nova senha">
+      </div>
+      <input id="recoverySubmit" type="submit" value="Enviar Instruções" class="btn">
       
       <div class="form-links">
         <a href="entrar.html" class="back-link">
@@ -41,30 +47,69 @@
     </form>
   </div>
 
-  <script>
-    // Simular envio de recuperação de senha
-    document.querySelector('.formLogin').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const email = document.getElementById('email').value;
-      
-      if (email) {
-        // Simular processo de envio
-        const submitBtn = document.querySelector('input[type="submit"]');
-        const originalText = submitBtn.value;
-        
-        submitBtn.value = 'Enviando...';
-        submitBtn.disabled = true;
-        
-        setTimeout(() => {
-          alert('Instruções de recuperação enviadas para: ' + email + '\n\nVerifique sua caixa de entrada e spam.');
-          
-          // Redirecionar de volta para o login após 2 segundos
-          setTimeout(() => {
-            window.location.href = 'entrar.html';
-          }, 2000);
-        }, 1500);
+  <script type="module">
+    import { supabase } from "./js/supabase-client.js";
+    const form = document.querySelector(".formLogin");
+    const emailInput = document.getElementById("email");
+    const recoveryFields = document.getElementById("recoveryFields");
+    const newPassword = document.getElementById("newPassword");
+    const confirmPassword = document.getElementById("confirmPassword");
+    const submitButton = document.getElementById("recoverySubmit");
+    let recoveryMode = new URLSearchParams(window.location.hash.replace(/^#/, "")).get("type") === "recovery";
+
+    function enablePasswordUpdate() {
+      recoveryMode = true;
+      emailInput.closest("label")?.setAttribute("hidden", "");
+      emailInput.setAttribute("hidden", "");
+      recoveryFields.style.display = "block";
+      document.querySelector(".login-header h1").textContent = "Definir nova senha";
+      form.querySelector("p").textContent = "Digite e confirme sua nova senha.";
+      submitButton.value = "Salvar nova senha";
+    }
+
+    supabase.auth.onAuthStateChange(event => {
+      if (event === "PASSWORD_RECOVERY") enablePasswordUpdate();
+    });
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (recoveryMode && sessionData.session) enablePasswordUpdate();
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      const original = submitButton.value;
+      submitButton.disabled = true;
+      submitButton.value = recoveryMode ? "Salvando..." : "Enviando...";
+      if (recoveryMode) {
+        if (newPassword.value.length < 6 || newPassword.value !== confirmPassword.value) {
+          alert("As senhas devem ser iguais e ter pelo menos 6 caracteres.");
+          submitButton.disabled = false;
+          submitButton.value = original;
+          return;
+        }
+        const { error } = await supabase.auth.updateUser({ password: newPassword.value });
+        if (error) {
+          alert("Não foi possível atualizar a senha: " + error.message);
+          submitButton.disabled = false;
+          submitButton.value = original;
+          return;
+        }
+        await supabase.auth.signOut();
+        alert("Senha atualizada. Entre novamente com a nova senha.");
+        window.location.href = "entrar.html";
+        return;
       }
+
+      const email = emailInput.value.trim();
+      const redirectTo = new URL("esqueceu-senha.html", window.location.href).href;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error) {
+        alert("Não foi possível enviar o link: " + error.message);
+        submitButton.disabled = false;
+        submitButton.value = original;
+        return;
+      }
+      alert("Se o e-mail estiver cadastrado, você receberá um link para redefinir sua senha.");
+      submitButton.disabled = false;
+      submitButton.value = original;
     });
   </script>
 

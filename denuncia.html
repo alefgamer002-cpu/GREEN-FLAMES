@@ -639,32 +639,23 @@
 
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    // Verificação de autenticação
-    function verificarAutenticacao() {
-      const usuarioLogado = localStorage.getItem('usuarioLogado');
-      const sessionToken = sessionStorage.getItem('sessionToken');
-      
-      if (!usuarioLogado || !sessionToken) {
-        // Salvar a página atual para redirecionar após o login
-        localStorage.setItem('paginaRedirecionamento', window.location.href);
-        
-        // Mostrar mensagem e redirecionar
-        alert('Você precisa fazer login para acessar a página de denúncias.');
-        window.location.href = 'entrar.html';
-        return false;
-      }
-      
-      return true;
-    }
+  <script type="module">
+    import { supabase } from "./js/supabase-client.js";
 
-    // Verificar autenticação ao carregar a página
-    if (!verificarAutenticacao()) {
-      // Se não estiver autenticado, o script para aqui
-      throw new Error('Usuário não autenticado');
+    const { data: sessionResult, error: sessionError } = await supabase.auth.getSession();
+    const currentSession = sessionResult.session;
+    if (sessionError || !currentSession?.user) {
+      localStorage.setItem("paginaRedirecionamento", window.location.href);
+      alert("Você precisa fazer login para acessar a página de denúncias.");
+      window.location.href = "entrar.html";
+      throw new Error("Sessão Supabase não encontrada.");
     }
-
-    console.log('Usuário autenticado, carregando página de denúncia...');
+    const currentUser = currentSession.user;
+    const { data: profileData } = await supabase
+      .from("tb_usuario").select("nome,email").eq("id_usuario", currentUser.id).maybeSingle();
+    const reportUserName = profileData?.nome || currentUser.user_metadata?.nome || currentUser.email?.split("@")[0] || "";
+    localStorage.setItem("usuarioLogado", JSON.stringify({ email: currentUser.email, nome: reportUserName }));
+    console.log("Usuário autenticado pelo Supabase; formulário de denúncia liberado.");
 
     // Configurar menu do usuário
     function configurarMenuUsuario() {
@@ -677,7 +668,7 @@
         userNameElement.textContent = usuarioData.nome.toUpperCase();
         
         // Adicionar evento de logout
-        userMenuElement.addEventListener('click', function(e) {
+        userMenuElement?.addEventListener('click', function(e) {
           e.preventDefault();
           if (confirm('Deseja sair da sua conta?')) {
             logout();
@@ -697,13 +688,11 @@
     }
 
     // Função de logout
-    function logout() {
-      localStorage.removeItem('usuarioLogado');
-      sessionStorage.removeItem('sessionToken');
-      localStorage.removeItem('paginaRedirecionamento');
-      
-      alert('Logout realizado com sucesso!');
-      window.location.href = 'index.html';
+    async function logout() {
+      await supabase.auth.signOut();
+      localStorage.removeItem("usuarioLogado");
+      localStorage.removeItem("paginaRedirecionamento");
+      window.location.href = "index.html";
     }
 
     // Configurar menu do usuário ao carregar
@@ -1143,7 +1132,7 @@
     }
 
 
-    btnContinuar.addEventListener('click', () => {
+    btnContinuar.addEventListener('click', async () => {
       if (etapaAtual === 0) {
         const assunto = document.getElementById('assunto').value;
         const descricao = document.getElementById('descricao').value;
@@ -1174,10 +1163,61 @@
           btnContinuar.innerHTML = `<span>Continuar</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`;
         }
       } else {
-        alert('Denúncia enviada com sucesso!');
-        document.getElementById('form-denuncia').reset();
-        document.getElementById('preview').innerHTML = '';
-        window.location.reload();
+        const submitButton = btnContinuar;
+        const originalButtonHtml = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = "<span>Enviando denúncia...</span>";
+        const uploadedPaths = [];
+        const protocol = crypto.randomUUID();
+        const identification = document.getElementById("identificacao").value || "anonimo";
+        const isAnonymous = identification === "anonimo";
+        try {
+          const filesToUpload = Array.from(inputFoto.files || []);
+          if (!filesToUpload.length) throw new Error("Anexe pelo menos uma foto.");
+          for (const file of filesToUpload) {
+            if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+              throw new Error("Use imagens JPG, PNG ou WEBP.");
+            }
+            if (file.size > 20 * 1024 * 1024) {
+              throw new Error("Cada imagem deve ter no máximo 20 MB.");
+            }
+            const safeName = file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]/g, "_").slice(-90) || "foto";
+            const objectPath = currentUser.id + "/" + protocol + "_" + crypto.randomUUID() + "_" + safeName;
+            const { error: uploadError } = await supabase.storage
+              .from("denuncias")
+              .upload(objectPath, file, { contentType: file.type, upsert: false });
+            if (uploadError) throw uploadError;
+            uploadedPaths.push(objectPath);
+          }
+
+          const reportPayload = {
+            id_denuncia: protocol,
+            id_usuario: isAnonymous ? null : currentUser.id,
+            localizacao: document.getElementById("endereco").value.trim(),
+            tipo_incendio: document.getElementById("assunto").value,
+            descricao: document.getElementById("descricao").value.trim(),
+            tipo_identificacao: identification,
+            anonima: isAnonymous,
+            nome_denunciante: isAnonymous ? null : reportUserName,
+            email_denunciante: isAnonymous ? null : currentUser.email,
+            anexos: uploadedPaths
+          };
+          const { error: insertError } = await supabase.from("tb_denuncia").insert(reportPayload);
+          if (insertError) throw insertError;
+
+          alert("Denúncia registrada no banco de dados!\nProtocolo: " + protocol);
+          document.getElementById("form-denuncia").reset();
+          document.getElementById("preview").innerHTML = "";
+          window.location.href = "index.html";
+        } catch (error) {
+          if (uploadedPaths.length) {
+            await supabase.storage.from("denuncias").remove(uploadedPaths);
+          }
+          console.error("Erro ao registrar denúncia:", error);
+          alert("Não foi possível registrar a denúncia: " + (error?.message || "Erro inesperado"));
+          submitButton.disabled = false;
+          submitButton.innerHTML = originalButtonHtml;
+        }
       }
     });
 
@@ -1197,7 +1237,10 @@
       const select = document.getElementById('identificacao');
       const campo = document.getElementById('campoDocumento');
       campo.classList.toggle('hidden', select.value === 'anonimo');
+      const documento = document.getElementById('documento');
+      if (documento) documento.required = select.value !== 'anonimo';
     }
+    window.mostrarCampo = mostrarCampo;
 
 
     function preencherConfirmacao() {
@@ -1319,7 +1362,7 @@
         }
       });
     })();
-  </script>
+    </script>
 </body>
 </html>
 

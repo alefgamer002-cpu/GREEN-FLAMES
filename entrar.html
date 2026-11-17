@@ -16,7 +16,7 @@
 <body>
 
   <div class="page">
-    <form method="POST" class="formLogin">
+    <form method="POST" class="formLogin" id="loginForm">
       <div class="login-header">
         <img src="assets/imagem/green flames login.png" alt="Logo Projeto Green Flames" class="logo">
         <h1>Login</h1>
@@ -33,9 +33,109 @@
 
       <input type="submit" value="Acessar" class="btn">
     </form>
+    <form method="POST" class="formLogin" id="signupForm" style="display:none">
+      <div class="login-header">
+        <img src="assets/imagem/green flames login.png" alt="Logo Projeto Green Flames" class="logo">
+        <h1>Criar conta</h1>
+      </div>
+      <p>Cadastre-se para acompanhar suas denúncias.</p>
+      <label for="signupName">Nome completo</label>
+      <input id="signupName" type="text" name="nome" placeholder="Digite seu nome completo" required autocomplete="name" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:15px">
+      <label for="signupEmail">E-mail</label>
+      <input id="signupEmail" type="email" name="email" placeholder="Digite seu e-mail" required autocomplete="email">
+      <label for="signupPassword">Senha</label>
+      <input id="signupPassword" type="password" name="password" placeholder="Crie uma senha (mínimo 6 caracteres)" required minlength="6" autocomplete="new-password">
+      <input type="submit" value="Criar conta" class="btn">
+    </form>
+    <p style="text-align:center;margin-top:16px">
+      <a href="#" class="forgot-link" id="showSignup">Não tem conta? Criar conta</a>
+      <a href="#" class="forgot-link" id="showLogin" style="display:none">Já tem conta? Entrar</a>
+    </p>
   </div>
 
-  <script>
+  <script type="module">
+    import { supabase } from "./js/supabase-client.js";
+
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const showSignup = document.getElementById("showSignup");
+    const showLogin = document.getElementById("showLogin");
+
+    function setAuthView(view) {
+      const creating = view === "signup";
+      loginForm.style.display = creating ? "none" : "block";
+      signupForm.style.display = creating ? "block" : "none";
+      showSignup.style.display = creating ? "none" : "inline-block";
+      showLogin.style.display = creating ? "inline-block" : "none";
+    }
+    showSignup.addEventListener("click", event => { event.preventDefault(); setAuthView("signup"); });
+    showLogin.addEventListener("click", event => { event.preventDefault(); setAuthView("login"); });
+
+    async function continueAfterAuth(user) {
+      let nome = user.user_metadata?.nome || user.email?.split("@")[0] || "Usuário";
+      const { data: perfil } = await supabase
+        .from("tb_usuario").select("nome").eq("id_usuario", user.id).maybeSingle();
+      if (perfil?.nome) nome = perfil.nome;
+      localStorage.setItem("usuarioLogado", JSON.stringify({ email: user.email, nome }));
+      const destino = localStorage.getItem("paginaRedirecionamento") || "index.html";
+      localStorage.removeItem("paginaRedirecionamento");
+      window.location.href = destino;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.user) {
+      await continueAfterAuth(sessionData.session.user);
+    }
+
+    loginForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const button = loginForm.querySelector('input[type="submit"]');
+      const original = button.value;
+      button.disabled = true;
+      button.value = "Entrando...";
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert("Não foi possível entrar: " + error.message);
+        button.disabled = false;
+        button.value = original;
+        return;
+      }
+      await continueAfterAuth(data.user);
+    });
+
+    signupForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const button = signupForm.querySelector('input[type="submit"]');
+      const original = button.value;
+      button.disabled = true;
+      button.value = "Criando conta...";
+      const nome = document.getElementById("signupName").value.trim();
+      const email = document.getElementById("signupEmail").value.trim();
+      const password = document.getElementById("signupPassword").value;
+      const redirectTo = new URL("index.html", window.location.href).href;
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { nome }, emailRedirectTo: redirectTo }
+      });
+      if (error) {
+        alert("Não foi possível criar a conta: " + error.message);
+        button.disabled = false;
+        button.value = original;
+        return;
+      }
+      if (data.session?.user) {
+        await continueAfterAuth(data.user);
+      } else {
+        alert("Cadastro iniciado! Confirme seu e-mail pelo link enviado para " + email + " e depois entre na plataforma.");
+        setAuthView("login");
+        button.disabled = false;
+        button.value = original;
+      }
+    });
+  </script>
     // Verificar se já está logado
     window.addEventListener('load', function() {
       const usuarioLogado = localStorage.getItem('usuarioLogado');

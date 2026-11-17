@@ -216,8 +216,10 @@
 
 
 
-  <script>
-    const NEWS = [
+  <script type="module">
+    import { supabase } from "./js/supabase-client.js";
+
+    let NEWS = [
       {
         title: "Governo do Estado realiza solenidade em comemoração dos 37 anos do Tocantins",
         date: "03/10/2025",
@@ -380,7 +382,43 @@
       }
     });
     
+
+    async function carregarNoticiasSupabase() {
+      try {
+        const { data, error } = await supabase
+          .from("tb_noticia")
+          .select("titulo_noticia,conteudo_noticia,imagem_url,data_publicacao_noticia,criado_em")
+          .eq("status_publicacao", true)
+          .order("data_publicacao_noticia", { ascending: false, nullsFirst: false });
+        if (error) throw error;
+        if (!data || data.length === 0) return;
+        const escapar = value => String(value || "").replace(/[&<>"']/g, char => ({
+          "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+        }[char]));
+        const imagemValida = value => {
+          try {
+            const parsed = new URL(value, window.location.href);
+            return ["https:", "http:"].includes(parsed.protocol) ? parsed.href : "assets/imagem/green flames.png";
+          } catch (_) { return "assets/imagem/green flames.png"; }
+        };
+        NEWS = data.map(item => {
+          const texto = String(item.conteudo_noticia || "");
+          const dataItem = item.data_publicacao_noticia || item.criado_em;
+          return {
+            title: escapar(item.titulo_noticia),
+            date: dataItem ? new Date(dataItem).toLocaleDateString("pt-BR") : "",
+            desc: escapar(texto.replace(/\s+/g, " ").slice(0, 180)),
+            thumb: imagemValida(item.imagem_url),
+            content: "<p>" + escapar(texto).replace(/\n/g, "<br>") + "</p>"
+          };
+        });
+        buildNews();
+      } catch (error) {
+        console.error("Não foi possível carregar notícias do Supabase:", error);
+      }
+    }
     buildNews();
+    carregarNoticiasSupabase();
 
 
 
@@ -407,6 +445,7 @@
 
 
     function scrollToTop(){ window.scrollTo({top:0,behavior:'smooth'}) }
+    window.scrollToTop = scrollToTop;
 
 
 
@@ -464,7 +503,7 @@
 
 
     // Menu mobile com checkbox - sem JavaScript necessário
-  </script>
+    </script>
 
 
 
