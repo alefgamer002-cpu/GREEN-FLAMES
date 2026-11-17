@@ -1197,6 +1197,7 @@
             tipo_incendio: document.getElementById("assunto").value,
             descricao: document.getElementById("descricao").value.trim(),
             tipo_identificacao: identification,
+            documento_identificacao: isAnonymous ? null : (document.getElementById("documento")?.value.trim() || null),
             anonima: isAnonymous,
             nome_denunciante: isAnonymous ? null : reportUserName,
             email_denunciante: isAnonymous ? null : currentUser.email,
