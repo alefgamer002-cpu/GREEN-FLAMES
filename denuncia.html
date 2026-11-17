@@ -514,7 +514,7 @@
 
 
         <label for="descricao">Descreva sua manifestação*</label>
-        <textarea id="descricao" placeholder="Digite aqui sua denúncia..." required></textarea>
+        <textarea id="descricao" placeholder="Digite aqui sua denúncia..." required minlength="15" maxlength="5000"></textarea>
 
 
         <!-- Foto obrigatória -->
@@ -1139,12 +1139,22 @@
         const endereco = document.getElementById('endereco').value;
 
 
-        if (!assunto || !descricao || fotos.length === 0 || !endereco) {
-          alert('Por favor, preencha todos os campos, anexe uma foto e adicione a localização.');
+        if (!assunto || descricao.trim().length < 15 || descricao.trim().length > 5000 || fotos.length === 0 || endereco.trim().length < 5) {
+          alert('Preencha o assunto, descreva a denúncia com pelo menos 15 caracteres, anexe uma foto e informe uma localização válida.');
           return;
         }
       }
 
+
+      if (etapaAtual === 1) {
+        const tipoIdentificacao = document.getElementById("identificacao").value;
+        const documento = document.getElementById("documento");
+        if (tipoIdentificacao !== "anonimo" && !documento?.value.trim()) {
+          alert("Informe o número do documento escolhido ou selecione a opção Anônimo.");
+          documento?.focus();
+          return;
+        }
+      }
 
       if (etapaAtual < etapas.length - 1) {
         etapas[etapaAtual].classList.add('hidden');
@@ -1246,7 +1256,9 @@
     function preencherConfirmacao() {
       document.getElementById('conf-assunto').textContent = document.getElementById('assunto').value;
       document.getElementById('conf-descricao').textContent = document.getElementById('descricao').value;
-      document.getElementById('conf-identificacao').textContent = document.getElementById('identificacao').value;
+      const tipoIdentificacao = document.getElementById('identificacao').value;
+      const documento = document.getElementById('documento')?.value.trim() || "";
+      document.getElementById('conf-identificacao').textContent = tipoIdentificacao === "anonimo" ? "Anônimo" : tipoIdentificacao.toUpperCase() + ": " + documento;
       document.getElementById('conf-localizacao').textContent = document.getElementById('endereco').value;
     }
 
